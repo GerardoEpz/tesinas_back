@@ -1,5 +1,6 @@
 package com.tesinas.spring.jwt.mongodb.controllers;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,16 +13,14 @@ import com.tesinas.spring.jwt.mongodb.models.Role;
 import com.tesinas.spring.jwt.mongodb.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tesinas.spring.jwt.mongodb.payload.request.LoginRequest;
 import com.tesinas.spring.jwt.mongodb.payload.request.SignupRequest;
@@ -131,5 +130,18 @@ public class AuthController {
 		userRepository.save(user);
 
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+	}
+	@GetMapping("/expires")
+	public ResponseEntity<?> isJWTValid(){
+		Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>)
+				SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+		boolean hasRole = false;
+		for (GrantedAuthority authority : authorities) {
+			hasRole = authority.getAuthority().equals("ROLE_ANONYMOUS");
+			if (hasRole) {
+				return ResponseEntity.badRequest().body("JWT not valid");
+			}
+		}
+		return ResponseEntity.ok(new MessageResponse("JWT is Valid"));
 	}
 }
