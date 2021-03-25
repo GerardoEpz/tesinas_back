@@ -58,16 +58,16 @@ public class AuthController {
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
-		
-		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();		
+
+		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		List<String> roles = userDetails.getAuthorities().stream()
 				.map(item -> item.getAuthority())
 				.collect(Collectors.toList());
 
-		return ResponseEntity.ok(new JwtResponse(jwt, 
-												 userDetails.getId(), 
-												 userDetails.getUsername(), 
-												 userDetails.getEmail(), 
+		return ResponseEntity.ok(new JwtResponse(jwt,
+												 userDetails.getId(),
+												 userDetails.getUsername(),
+												 userDetails.getEmail(),
 												 roles));
 	}
 
@@ -131,17 +131,9 @@ public class AuthController {
 
 		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/expires")
 	public ResponseEntity<?> isJWTValid(){
-		Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>)
-				SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-		boolean hasRole = false;
-		for (GrantedAuthority authority : authorities) {
-			hasRole = authority.getAuthority().equals("ROLE_ANONYMOUS");
-			if (hasRole) {
-				return ResponseEntity.badRequest().body("JWT not valid");
-			}
-		}
 		return ResponseEntity.ok(new MessageResponse("JWT is Valid"));
 	}
 }

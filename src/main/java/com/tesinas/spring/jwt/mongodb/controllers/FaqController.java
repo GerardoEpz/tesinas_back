@@ -17,20 +17,26 @@ public class FaqController {
     @Autowired
     FaqRepository faqRepository;
 
+    @PreAuthorize("isAuthenticated()") //pre authorize the request if the user is autheticated (JWT is provided and is valid)
     @GetMapping("/getall")
     public ResponseEntity<?> requestAllQuestions(){
-        List<Faq> faqs = faqRepository.findAll();
-        return ResponseEntity.ok(faqs);
+        try {
+            List<Faq> faqs = faqRepository.findAll();
+            return ResponseEntity.ok(faqs);
+        }catch (Exception error){
+            return ResponseEntity.badRequest().body(error);
+        }
+
     }
 
     @PostMapping("/addFaq")
-//    @PreAuthorize(" hasRole('PROFESOR') or hasRole('ASESOR') or hasRole('DIRECTOR')")
+    @PreAuthorize(" hasRole('PROFESOR') or hasRole('ASESOR') or hasRole('DIRECTOR')") //only those roles have access to this method
     public ResponseEntity<?> addFaq(@RequestBody Faq faq){
         try {
             faqRepository.save(faq);
             return ResponseEntity.ok().body("FAQ Updated");
         } catch (Exception error){
-            return ResponseEntity.badRequest().body("Could not update FAQ");
+            return ResponseEntity.badRequest().body("Could not update FAQ" + error);
         }
     }
 }
