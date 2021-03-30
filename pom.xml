@@ -9,10 +9,10 @@
 		<version>2.2.4.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.bezkoder</groupId>
-	<artifactId>spring-boot-security-jwt-mongodb</artifactId>
+	<groupId>tesinas-api</groupId>
+	<artifactId>tesinas-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-boot-security-jwt-mongodb</name>
+	<name>tesinas-api</name>
 	<description>Demo project for Spring Boot Auth with Spring Security,
 		JWT, MongoDB</description>
 
@@ -64,5 +64,13 @@
 			<version>2.3.2</version>
 		</dependency>
 	</dependencies>
-
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+		<finalName>tesinas-api</finalName>
+	</build>
 </project>
