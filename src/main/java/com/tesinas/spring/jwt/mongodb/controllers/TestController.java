@@ -1,28 +1,31 @@
 package com.tesinas.spring.jwt.mongodb.controllers;
 
+import com.tesinas.spring.jwt.mongodb.models.User;
 import com.tesinas.spring.jwt.mongodb.repository.RoleRepository;
 import com.tesinas.spring.jwt.mongodb.models.Role;
+import com.tesinas.spring.jwt.mongodb.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
 	@Autowired
-	RoleRepository roleRepository;
+	UserRepository userRepository;
 
-	@GetMapping("/all")
-	public ResponseEntity<List<Role>> allAccess() {
-		List<Role> roles = roleRepository.findAll();
-		return ResponseEntity.ok(roles);
+	@GetMapping("/update-user")
+	public ResponseEntity<?> updateUserData(@RequestBody String username) {
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+		user.setName("Eliu Abdiel Zamudio Vaquerño");
+		userRepository.save(user);
+		return ResponseEntity.ok(user);
 	}
 	
 	@GetMapping("/user")
