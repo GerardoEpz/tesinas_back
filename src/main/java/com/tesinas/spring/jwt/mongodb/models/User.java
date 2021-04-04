@@ -32,9 +32,9 @@ public class User {
   @NotBlank
   private String name;
 
-  private int period;
+  private String period;
 
-  private int year;
+  private String year;
 
   @DBRef
   private Cronogram cronograma;
@@ -64,9 +64,10 @@ public class User {
 
   }
 
-  public User(String username, String email, String password) {
+  public User(String username, String email, String name,String password) {
     this.username = username;
     this.email = email;
+    this.name = name;
     this.password = password;
   }
 
@@ -110,19 +111,17 @@ public class User {
     this.name = name;
   }
 
-  public int getPeriod() {
-    return period;
-  }
+  public String getPeriod() { return period; }
 
-  public void setPeriod(int period) {
+  public void setPeriod(String period) {
     this.period = period;
   }
 
-  public int getYear() {
+  public String getYear() {
     return year;
   }
 
-  public void setYear(int year) {
+  public void setYear(String year) {
     this.year = year;
   }
 

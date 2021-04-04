@@ -1,9 +1,6 @@
 package com.tesinas.spring.jwt.mongodb.controllers;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -11,6 +8,7 @@ import javax.validation.Valid;
 import com.tesinas.spring.jwt.mongodb.models.ERole;
 import com.tesinas.spring.jwt.mongodb.models.Role;
 import com.tesinas.spring.jwt.mongodb.models.User;
+import com.tesinas.spring.jwt.mongodb.payload.request.SignUpRequestList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,68 +71,84 @@ public class AuthController {
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-			return ResponseEntity
-					.badRequest()
-					.body(new MessageResponse("Error: Username is already taken!"));
-		}
+	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequestList signUpRequests) {
+		List<MessageResponse> message = new ArrayList<>();
+		try{
+			for (SignupRequest signUpRequest : signUpRequests.getSignupRequests()) {
+				if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+					message.add(new MessageResponse("User " + signUpRequest.getUsername() + " could not been added because username is already taken",false));
+					continue;
+				}
 
-		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			return ResponseEntity
-					.badRequest()
-					.body(new MessageResponse("Error: Email is already in use!"));
-		}
+				if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+					message.add(new MessageResponse("User " + signUpRequest.getUsername() + " could not been added because email is already taken",false));
+					continue;
+				}
 
-		// Create new user's account
-		User user = new User(signUpRequest.getUsername(),
-							 signUpRequest.getEmail(),
-							 encoder.encode(signUpRequest.getPassword()));
+				// Create new user's account
+				User user = new User(signUpRequest.getUsername(),
+						signUpRequest.getEmail(),
+						signUpRequest.getName(),
+						encoder.encode(signUpRequest.getPassword()));
 
-		Set<String> strRoles = signUpRequest.getRoles();
-		Set<Role> roles = new HashSet<>();
+				Set<String> strRoles = signUpRequest.getRoles();
+				Set<Role> roles = new HashSet<>();
 
-		if (strRoles == null) {
-			Role alumnoRole = roleRepository.findByName(ERole.ROLE_ALUMNO)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-			roles.add(alumnoRole);
-		} else {
-			strRoles.forEach(role -> {
-				switch (role) {
-				case "Director":
-					Role directorRole = roleRepository.findByName(ERole.ROLE_DIRECTOR)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(directorRole);
-
-					break;
-				case "Profesor":
-					Role modRole = roleRepository.findByName(ERole.ROLE_PROFESOR)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(modRole);
-
-					break;
-				case "Asesor":
-					Role asesorRole = roleRepository.findByName(ERole.ROLE_ASESOR)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(asesorRole);
-
-					break;
-				default:
+				if (strRoles == null) {
 					Role alumnoRole = roleRepository.findByName(ERole.ROLE_ALUMNO)
 							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 					roles.add(alumnoRole);
+				} else {
+					strRoles.forEach(role -> {
+						Role roleChosed;
+						switch (role) {
+
+							case "Director":
+								roleChosed = roleRepository.findByName(ERole.ROLE_DIRECTOR)
+										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								roles.add(roleChosed);
+
+								break;
+							case "Profesor":
+								roleChosed = roleRepository.findByName(ERole.ROLE_PROFESOR)
+										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								roles.add(roleChosed);
+
+								break;
+							case "Asesor":
+								roleChosed = roleRepository.findByName(ERole.ROLE_ASESOR)
+										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								roles.add(roleChosed);
+
+								break;
+							case "Alumno":
+								roleChosed = roleRepository.findByName(ERole.ROLE_ALUMNO)
+										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								roles.add(roleChosed);
+
+								break;
+							default:
+								roleChosed = roleRepository.findByName(ERole.ROLE_ALUMNO)
+										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+								roles.add(roleChosed);
+						}
+					});
 				}
-			});
+
+				user.setRoles(roles);
+				userRepository.save(user);
+				message.add(new MessageResponse("User " + signUpRequest.getUsername() + " added succesfully", true));
+			}
+		} catch (RuntimeException error){
+			throw new RuntimeException(error);
 		}
 
-		user.setRoles(roles);
-		userRepository.save(user);
+		return ResponseEntity.ok(message);
 
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 	}
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/expires")
 	public ResponseEntity<?> isJWTValid(){
-		return ResponseEntity.ok(new MessageResponse("JWT is Valid"));
+		return ResponseEntity.ok("JWT is Valid");
 	}
 }
