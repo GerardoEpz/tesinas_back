@@ -69,82 +69,95 @@ public class AuthController {
 												 userDetails.getName(),
 												 roles));
 	}
-
-	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequestList signUpRequests) {
-		List<MessageResponse> message = new ArrayList<>();
-		try{
-			for (SignupRequest signUpRequest : signUpRequests.getSignupRequests()) {
-				if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-					message.add(new MessageResponse("User " + signUpRequest.getUsername() + " could not been added because username is already taken",false));
-					continue;
-				}
-
-				if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-					message.add(new MessageResponse("User " + signUpRequest.getUsername() + " could not been added because email is already taken",false));
-					continue;
-				}
-
-				// Create new user's account
-				User user = new User(signUpRequest.getUsername(),
-						signUpRequest.getEmail(),
-						signUpRequest.getName(),
-						encoder.encode(signUpRequest.getPassword()));
-
-				Set<String> strRoles = signUpRequest.getRoles();
-				Set<Role> roles = new HashSet<>();
-
-				if (strRoles == null) {
-					Role alumnoRole = roleRepository.findByName(ERole.ROLE_ALUMNO)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(alumnoRole);
-				} else {
-					strRoles.forEach(role -> {
-						Role roleChosed;
-						switch (role) {
-
-							case "Director":
-								roleChosed = roleRepository.findByName(ERole.ROLE_DIRECTOR)
-										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-								roles.add(roleChosed);
-
-								break;
-							case "Profesor":
-								roleChosed = roleRepository.findByName(ERole.ROLE_PROFESOR)
-										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-								roles.add(roleChosed);
-
-								break;
-							case "Asesor":
-								roleChosed = roleRepository.findByName(ERole.ROLE_ASESOR)
-										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-								roles.add(roleChosed);
-
-								break;
-							case "Alumno":
-								roleChosed = roleRepository.findByName(ERole.ROLE_ALUMNO)
-										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-								roles.add(roleChosed);
-
-								break;
-							default:
-								roleChosed = roleRepository.findByName(ERole.ROLE_ALUMNO)
-										.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-								roles.add(roleChosed);
-						}
-					});
-				}
-
-				user.setRoles(roles);
-				userRepository.save(user);
-				message.add(new MessageResponse("User " + signUpRequest.getUsername() + " added succesfully", true));
+	public List<MessageResponse> registerUser(SignUpRequestList signUpRequests){
+		List<MessageResponse> messages = new ArrayList<>();
+		for (SignupRequest signUpRequest : signUpRequests.getSignupRequests()) {
+			if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+				messages.add(new MessageResponse("El Usuario '" + signUpRequest.getUsername() + "' ya existe",false));
+				continue;
 			}
+
+			if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+				messages.add(new MessageResponse("El email del Usuario '" + signUpRequest.getUsername() + "' ya está registrado",false));
+				continue;
+			}
+
+			// Create new user's account
+			User user = new User(signUpRequest.getUsername(),
+					signUpRequest.getEmail(),
+					signUpRequest.getName(),
+					encoder.encode(signUpRequest.getPassword()));
+
+			Set<String> strRoles = signUpRequest.getRoles();
+			Set<Role> roles = new HashSet<>();
+
+			if (strRoles == null) {
+				Role alumnoRole = roleRepository.findByName(ERole.ROLE_ALUMNO)
+						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				roles.add(alumnoRole);
+			} else {
+				strRoles.forEach(role -> {
+					Role roleChosed;
+					switch (role) {
+
+						case "Director":
+							roleChosed = roleRepository.findByName(ERole.ROLE_DIRECTOR)
+									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							roles.add(roleChosed);
+
+							break;
+						case "Profesor":
+							roleChosed = roleRepository.findByName(ERole.ROLE_PROFESOR)
+									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							roles.add(roleChosed);
+
+							break;
+						case "Asesor":
+							roleChosed = roleRepository.findByName(ERole.ROLE_ASESOR)
+									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							roles.add(roleChosed);
+
+							break;
+
+						default:
+							roleChosed = roleRepository.findByName(ERole.ROLE_ALUMNO)
+									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							roles.add(roleChosed);
+					}
+				});
+			}
+
+			user.setRoles(roles);
+			userRepository.save(user);
+			messages.add(new MessageResponse("Usuario '" + signUpRequest.getUsername() + "' agregado exitosamente", true));
+		}
+		return messages;
+	}
+	@PostMapping("/signup")
+	public ResponseEntity<?> registerUserWithoutPrivileges(@Valid @RequestBody SignUpRequestList signUpRequests) {
+		signUpRequests.getSignupRequests().get(0).setRole(null);
+		try{
+			List<MessageResponse> messages = registerUser(signUpRequests);
+			for ( MessageResponse message : messages){
+				if (message.getAdded() == false) return ResponseEntity.badRequest().body(messages);
+			}
+			return ResponseEntity.ok(messages);
 		} catch (RuntimeException error){
 			throw new RuntimeException(error);
 		}
-
-		return ResponseEntity.ok(message);
-
+	}
+	@PreAuthorize("hasRole('DIRECTOR') or hasRole('PROFESOR') or hasRole('ASESOR') ")
+	@PostMapping("/signup-user-with-privileges")
+	public ResponseEntity<?> registerUserWithPrivileges(@Valid @RequestBody SignUpRequestList signUpRequests) {
+		try{
+			List<MessageResponse> messages = registerUser(signUpRequests);
+			for ( MessageResponse message : messages){
+				if (message.getAdded() == false) return ResponseEntity.badRequest().body(messages);
+			}
+			return ResponseEntity.ok(messages);
+		} catch (RuntimeException error){
+			throw new RuntimeException(error);
+		}
 	}
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/expires")
