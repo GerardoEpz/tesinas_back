@@ -25,6 +25,8 @@ public class User {
   @Email
   private String email;
 
+  private String grupo;
+
   @NotBlank
   @Size(max = 120)
   private String password;
@@ -51,7 +53,15 @@ public class User {
 
   private String empresa;
 
+  private String calificacionTesina;
+
+  private String calificacionPresentacion;
+
+  private String calificacionEmpresa;
+
   private String locacionEmpresa;
+
+  private String observaciones;
 
   private String conTrabajo;
 
@@ -64,10 +74,11 @@ public class User {
 
   }
 
-  public User(String username, String email, String name,String password) {
+  public User(String username, String email, String name, String grupo, String password) {
     this.username = username;
     this.email = email;
     this.name = name;
+    this.grupo = grupo;
     this.password = password;
   }
 
@@ -189,6 +200,26 @@ public class User {
     this.conTrabajo = conTrabajo;
   }
 
+  public String getGrupo() { return grupo; }
+
+  public void setGrupo(String grupo) { this.grupo = grupo; }
+
+  public String getCalificacionTesina() { return calificacionTesina; }
+
+  public void setCalificacionTesina(String calificacionTesina) { this.calificacionTesina = calificacionTesina; }
+
+  public String getCalificacionPresentacion() { return calificacionPresentacion; }
+
+  public void setCalificacionPresentacion(String calificacionPresentacion) { this.calificacionPresentacion = calificacionPresentacion; }
+
+  public String getCalificacionEmpresa() { return calificacionEmpresa; }
+
+  public void setCalificacionEmpresa(String calificacionEmpresa) { this.calificacionEmpresa = calificacionEmpresa; }
+
+  public String getObservaciones() { return observaciones; }
+
+  public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+
   public Set<Role> getRoles() {
     return roles;
   }
@@ -196,4 +227,5 @@ public class User {
   public void setRoles(Set<Role> roles) {
     this.roles = roles;
   }
+
 }

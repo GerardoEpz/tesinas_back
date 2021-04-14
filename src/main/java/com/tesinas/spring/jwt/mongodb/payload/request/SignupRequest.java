@@ -11,7 +11,9 @@ public class SignupRequest {
 
     @NotBlank
     private String name;
- 
+
+    private String grupo;
+
     @NotBlank
     @Size(max = 50)
     @Email
@@ -50,7 +52,11 @@ public class SignupRequest {
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
+    public String getGrupo() { return grupo; }
+
+    public void setGrupo(String grupo) { this.grupo = grupo; }
+
     public Set<String> getRoles() {
       return this.roles;
     }

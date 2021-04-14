@@ -86,6 +86,7 @@ public class AuthController {
 			User user = new User(signUpRequest.getUsername(),
 					signUpRequest.getEmail(),
 					signUpRequest.getName(),
+					signUpRequest.getGrupo(),
 					encoder.encode(signUpRequest.getPassword()));
 
 			Set<String> strRoles = signUpRequest.getRoles();
@@ -146,6 +147,7 @@ public class AuthController {
 			throw new RuntimeException(error);
 		}
 	}
+
 	@PreAuthorize("hasRole('DIRECTOR') or hasRole('PROFESOR') or hasRole('ASESOR') ")
 	@PostMapping("/signup-user-with-privileges")
 	public ResponseEntity<?> registerUserWithPrivileges(@Valid @RequestBody SignUpRequestList signUpRequests) {
@@ -159,6 +161,7 @@ public class AuthController {
 			throw new RuntimeException(error);
 		}
 	}
+
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/expires")
 	public ResponseEntity<?> isJWTValid(){
