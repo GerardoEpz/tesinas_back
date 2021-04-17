@@ -39,4 +39,15 @@ public class FaqController {
             return ResponseEntity.badRequest().body("Could not update FAQ" + error);
         }
     }
+
+    @DeleteMapping("/delete-faq")
+    @PreAuthorize(" hasRole('PROFESOR') or hasRole('ASESOR') or hasRole('DIRECTOR')") //only those roles have access to this method
+    public ResponseEntity<?> deleteFaq(@RequestBody Faq faq){
+        try {
+            faqRepository.delete(faq);
+            return ResponseEntity.ok().body("FAQ Deleted");
+        } catch (Exception error){
+            return ResponseEntity.badRequest().body("Could not delete FAQ" + error);
+        }
+    }
 }
