@@ -11,7 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +40,12 @@ public class TestController {
 
 	@Autowired
 	SendEmail email;
+
+	@Autowired
+	PasswordEncoder encoder;
+
+	@Autowired
+	AuthenticationManager authenticationManager;
 
 	@GetMapping("/update-user")
 	public ResponseEntity<?> updateUserData(@RequestBody String username) {
@@ -79,5 +91,22 @@ public class TestController {
 	public ResponseEntity<?> sendEmailTest() {
 		email.SendSimpleMessage("eliu_070@hotmail.com","Another Test", "Haha yes text a lot of text sorry");
 		return ResponseEntity.ok("e");
+	}
+
+	@GetMapping("/change-password-test")
+	public ResponseEntity<?> changePassword(){
+		User user  = userRepository.findByUsername("eliu").orElseThrow( () -> new RuntimeException("Error username not found"));
+
+//		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("eliu","Hjbj4DRIZA");
+
+//		Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+//		user.setPassword(encoder.encode("123456"));
+
+//		userRepository.save(user);
+//		email.SendSimpleMessage(user.getEmail(),"password changed","Hi "+user.getName()+" your password hsa been changed");
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String username = ((UserDetails)principal).getUsername();
+		return ResponseEntity.ok(username);
 	}
 }

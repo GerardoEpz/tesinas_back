@@ -8,8 +8,7 @@ import javax.validation.Valid;
 import com.tesinas.spring.jwt.mongodb.models.ERole;
 import com.tesinas.spring.jwt.mongodb.models.Role;
 import com.tesinas.spring.jwt.mongodb.models.User;
-import com.tesinas.spring.jwt.mongodb.payload.request.SignUpRequestList;
-import com.tesinas.spring.jwt.mongodb.payload.request.UsernameRequest;
+import com.tesinas.spring.jwt.mongodb.payload.request.*;
 import com.tesinas.spring.jwt.mongodb.services.RandomString;
 import com.tesinas.spring.jwt.mongodb.services.SendEmail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +19,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import com.tesinas.spring.jwt.mongodb.payload.request.LoginRequest;
-import com.tesinas.spring.jwt.mongodb.payload.request.SignupRequest;
 import com.tesinas.spring.jwt.mongodb.payload.response.JwtResponse;
 import com.tesinas.spring.jwt.mongodb.payload.response.MessageResponse;
 import com.tesinas.spring.jwt.mongodb.repository.RoleRepository;
@@ -186,6 +184,37 @@ public class AuthController {
 		}
 		catch(RuntimeException error){
 			return ResponseEntity.badRequest().body(error.getMessage());
+		}
+	}
+
+	@PreAuthorize("isAuthenticated()")
+	@PutMapping("/change-password")
+	public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest){
+		try{
+			//gets username from the security context holder
+			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			String username = ((UserDetails)principal).getUsername();
+
+			User user = userRepository.findByUsername(username).orElseThrow( () -> new RuntimeException("Error username not found"));
+
+			UsernamePasswordAuthenticationToken authenticationToken
+					= new UsernamePasswordAuthenticationToken(username,changePasswordRequest.getCurrentPassword());
+
+			Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+			user.setPassword(encoder.encode(changePasswordRequest.getNewPassword()));
+
+			userRepository.save(user);
+
+			sendEmail.SendSimpleMessage(user.getEmail(),
+					"Contraseña Cambiada",
+					"Hola "+user.getName()+" tu contraseña ha sido cambiada." +
+							"\nSi no estás enterado de esta acción recupera tu contraseña");
+
+			return ResponseEntity.ok("Contraseña cambiada");
+
+		}catch (RuntimeException error){
+			return ResponseEntity.badRequest().body(error);
 		}
 	}
 
