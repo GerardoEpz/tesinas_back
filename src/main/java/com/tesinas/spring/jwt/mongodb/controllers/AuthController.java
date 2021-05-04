@@ -9,6 +9,9 @@ import com.tesinas.spring.jwt.mongodb.models.ERole;
 import com.tesinas.spring.jwt.mongodb.models.Role;
 import com.tesinas.spring.jwt.mongodb.models.User;
 import com.tesinas.spring.jwt.mongodb.payload.request.SignUpRequestList;
+import com.tesinas.spring.jwt.mongodb.payload.request.UsernameRequest;
+import com.tesinas.spring.jwt.mongodb.services.RandomString;
+import com.tesinas.spring.jwt.mongodb.services.SendEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +50,12 @@ public class AuthController {
 
 	@Autowired
 	JwtUtils jwtUtils;
+
+	@Autowired
+	SendEmail sendEmail;
+
+	@Autowired
+	RandomString randomString;
 
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -159,6 +168,24 @@ public class AuthController {
 			return ResponseEntity.ok(messages);
 		} catch (RuntimeException error){
 			throw new RuntimeException(error);
+		}
+	}
+
+	@PostMapping("/forgot-password")
+	public ResponseEntity emailToRecoveryAccount(@RequestBody UsernameRequest username){
+		try {
+			User user = userRepository.findByUsername(username.getUsername()).orElseThrow(() -> new RuntimeException("Error: Username is not found."));
+
+			String generatedString = randomString.generateString();
+
+			sendEmail.SendSimpleMessage(user.getEmail(),"New Password", "Your new password: "+generatedString);
+
+			user.setPassword(encoder.encode(generatedString));
+			userRepository.save(user);
+			return ResponseEntity.ok("Contraseña cambiada");
+		}
+		catch(RuntimeException error){
+			return ResponseEntity.badRequest().body(error.getMessage());
 		}
 	}
 

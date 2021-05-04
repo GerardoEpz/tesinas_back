@@ -5,10 +5,14 @@ import com.tesinas.spring.jwt.mongodb.models.User;
 import com.tesinas.spring.jwt.mongodb.repository.RoleRepository;
 import com.tesinas.spring.jwt.mongodb.models.Role;
 import com.tesinas.spring.jwt.mongodb.repository.UserRepository;
+import com.tesinas.spring.jwt.mongodb.services.SendEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -16,14 +20,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Service
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
+
 	@Autowired
 	RoleRepository roleRepository;
+
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	SendEmail email;
 
 	@GetMapping("/update-user")
 	public ResponseEntity<?> updateUserData(@RequestBody String username) {
@@ -63,5 +73,11 @@ public class TestController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public String adminAccess() {
 		return "Admin Board.";
+	}
+
+	@GetMapping("/email-test")
+	public ResponseEntity<?> sendEmailTest() {
+		email.SendSimpleMessage("eliu_070@hotmail.com","Another Test", "Haha yes text a lot of text sorry");
+		return ResponseEntity.ok("e");
 	}
 }
