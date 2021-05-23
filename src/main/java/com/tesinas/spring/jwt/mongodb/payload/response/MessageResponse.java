@@ -5,9 +5,13 @@ public class MessageResponse {
 	private Boolean added;
 
 	public MessageResponse(String message,Boolean added) {
-	    this.added = added;
+		this.added = added;
 		this.message = message;
 	  }
+	public MessageResponse(String message) {
+		this.message = message;
+	}
+
 
 	public String getMessage() {
 		return message;
