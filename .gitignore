@@ -13,7 +13,7 @@
 
 uploads/*
 !uploads/.gitkeep
-/uploads/tesinas/**
+/uploads/tesinas/*
 # Package Files #
 *.jar
 *.war
