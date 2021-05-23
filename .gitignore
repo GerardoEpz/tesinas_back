@@ -11,9 +11,9 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-uploads/**
-!uploads/tesinas
-uploads/tesinas/**
+uploads/*
+!uploads/.gitkeep
+/uploads/tesinas/**
 # Package Files #
 *.jar
 *.war
