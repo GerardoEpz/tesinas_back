@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public interface FileStorageService {
+
     public void init(Path folder);
 
     public void save(byte[] file, Path folder);
@@ -15,5 +16,5 @@ public interface FileStorageService {
 
     public void deleteAll(Path folder);
 
-    public Stream<Path> loadAll();
+    public Stream<Path> loadAll(Path folder);
 }

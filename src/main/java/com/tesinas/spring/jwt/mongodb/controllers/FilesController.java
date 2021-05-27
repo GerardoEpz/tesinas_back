@@ -50,7 +50,8 @@ public class FilesController {
 
     @GetMapping("/get-tesinas")
     public ResponseEntity<List<FileInfo>> getListFiles(){
-        List<FileInfo> fileInfos = storageService.loadAll().map(path -> {
+        final Path folder = Paths.get("uploads/tesinas/");
+        List<FileInfo> fileInfos = storageService.loadAll(folder).map(path -> {
             String filename = path.getFileName().toString();
             String url = MvcUriComponentsBuilder
                     .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
